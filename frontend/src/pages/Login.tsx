@@ -134,6 +134,13 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
           </div>
         </div>
 
+        {/* Credits */}
+        <div className="pt-2 text-center border-t border-slate-100">
+          <p className="text-[11px] text-slate-500 font-medium">
+            Built by <span className="text-teal-800 font-bold">Priyansh Sharma</span> and <span className="text-teal-800 font-bold">Pushkar Madan</span>
+          </p>
+        </div>
+
       </div>
     </div>
   );

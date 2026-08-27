@@ -111,6 +111,7 @@ export interface ADRReport {
   ai_missing_fields?: MissingFieldItem[];
   completeness_score?: number;
   ich_criteria_met?: boolean;
+  ai_clinical_summary?: string;
   status: 'DRAFT' | 'AI_EXTRACTED' | 'PENDING_REVIEW' | 'VERIFIED_APPROVED' | 'SUBMITTED';
   verified_by_user_id?: number;
   verified_at?: string;
@@ -148,6 +149,7 @@ export interface AIExtractionResponse {
   missing_fields: MissingFieldItem[];
   completeness_score: number;
   ich_criteria_met: boolean;
+  ai_clinical_summary?: string;
   naranjo_estimate?: {
     score: number;
     category: string;

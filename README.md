@@ -125,3 +125,12 @@ All tests cover:
 - ICH E2B missing field detector
 - Report verification and status transitions
 - CIOMS PDF generation & E2B JSON serialization
+
+---
+
+## 👥 Authors & Credits
+
+**AI-Assisted Adverse Drug Reaction (ADR) Reporting System** was built by:
+- **Priyansh Sharma**
+- **Pushkar Madan**
+

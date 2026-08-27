@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
+import { Footer } from './components/Footer';
 import { Dashboard } from './pages/Dashboard';
 import { NewReport } from './pages/NewReport';
 import { ReportList } from './pages/ReportList';
@@ -51,6 +52,8 @@ const MainLayout: React.FC = () => {
           )}
         </main>
       </div>
+
+      <Footer />
     </div>
   );
 };

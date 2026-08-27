@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => 
       </div>
 
       {/* Footer Info */}
-      <div className="pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1">
+      <div className="pt-4 border-t border-slate-100 text-xs text-slate-400 space-y-1.5">
         <div className="flex items-center justify-between">
           <span>ICH E2B(R3) & CIOMS</span>
           <span className="font-semibold text-slate-600">Compliant</span>
@@ -98,6 +98,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => 
         <div className="flex items-center justify-between">
           <span>Causality</span>
           <span className="font-semibold text-slate-600">Naranjo Scale</span>
+        </div>
+        <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 text-center font-medium">
+          Built by <span className="font-semibold text-teal-800">Priyansh Sharma</span> & <span className="font-semibold text-teal-800">Pushkar Madan</span>
         </div>
       </div>
     </aside>
