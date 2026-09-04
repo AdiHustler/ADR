@@ -1,11 +1,14 @@
 import re
 import json
 import os
+import logging
 import requests
 from typing import Dict, Any, List, Optional
 from app.config import settings
 from app.nlp.validator import validate_adr_report_completeness
 from app.nlp.causality import calculate_naranjo_score
+
+logger = logging.getLogger(__name__)
 
 # Common Clinical Dictionaries for NER & Rule-based extraction
 KNOWN_DRUGS = {
@@ -184,8 +187,10 @@ Return ONLY valid JSON.
                 data = res.json()
                 text_content = data["choices"][0]["message"]["content"]
                 return json.loads(clean_json_text(text_content))
-        except Exception:
-            pass
+            else:
+                logger.warning(f"OpenRouter extraction returned HTTP {res.status_code}: {res.text[:200]}")
+        except Exception as ex:
+            logger.warning(f"OpenRouter extraction failed: {ex}")
     else:
         # Default Google Gemini API
         try:
@@ -199,8 +204,10 @@ Return ONLY valid JSON.
                 data = res.json()
                 text_content = data["candidates"][0]["content"]["parts"][0]["text"]
                 return json.loads(clean_json_text(text_content))
-        except Exception:
-            pass
+            else:
+                logger.warning(f"Gemini extraction returned HTTP {res.status_code}: {res.text[:200]}")
+        except Exception as ex:
+            logger.warning(f"Gemini extraction failed: {ex}")
 
     return None
 

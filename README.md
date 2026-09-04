@@ -131,6 +131,6 @@ All tests cover:
 ## 👥 Authors & Credits
 
 **AI-Assisted Adverse Drug Reaction (ADR) Reporting System** was built by:
-- **Priyansh Sharma**
 - **Pushkar Madan**
+- **Priyansh Sharma**
 

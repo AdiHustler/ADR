@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { DashboardStats } from '../types';
 import { api } from '../services/api';
+import { SkeletonChart } from '../components/LoadingSkeleton';
 
 export const Analytics: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -23,8 +24,17 @@ export const Analytics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="space-y-6 max-w-7xl mx-auto pb-16">
+        <div>
+          <div className="h-8 w-64 bg-slate-200 rounded animate-pulse mb-2"></div>
+          <div className="h-4 w-96 bg-slate-100 rounded animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SkeletonChart />
+          <SkeletonChart />
+          <SkeletonChart />
+          <SkeletonChart />
+        </div>
       </div>
     );
   }

@@ -105,3 +105,45 @@ def test_api_e2b_export(client):
     data = res.json()
     assert "ichicsr" in data
     assert data["ichicsr"]["safetyreportid"] == "ADR-2026-0001"
+
+def test_api_ai_chat_pharmacovigilance_query(client):
+    res = client.post("/api/ai/chat", json={
+        "messages": [
+            {"role": "user", "content": "What are the common adverse reactions of Amoxicillin?"}
+        ]
+    })
+    assert res.status_code == 200
+    data = res.json()
+    assert "reply" in data
+    assert "Amoxicillin" in data["reply"]
+    assert len(data["suggested_actions"]) > 0
+
+def test_api_ai_chat_database_grounding(client):
+    res = client.post("/api/ai/chat", json={
+        "messages": [
+            {"role": "user", "content": "How many cases and serious events are in the registry?"}
+        ]
+    })
+    assert res.status_code == 200
+    data = res.json()
+    assert "reply" in data
+    assert "Total Registered Cases" in data["reply"] or "cases" in data["reply"].lower()
+    assert data["context_used"]["total_reports"] >= 3
+
+def test_api_auth_register(client):
+    unique_username = "dr_new_tester"
+    res = client.post("/api/auth/register", json={
+        "username": unique_username,
+        "email": "tester@ai-hospital.org",
+        "full_name": "Dr. Tester Case, MD",
+        "role": "Physician",
+        "department": "Cardiology",
+        "institution": "City General Hospital",
+        "password": "securepassword123"
+    })
+    # Could be 200 or 400 if already created in earlier run
+    assert res.status_code in [200, 400]
+    if res.status_code == 200:
+        data = res.json()
+        assert data["username"] == unique_username
+

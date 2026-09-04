@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, DemoAccount } from '../types';
+import { User, DemoAccount, RegisterPayload } from '../types';
 import { api } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  register: (userData: RegisterPayload) => Promise<void>;
   loginWithDemo: (demo: DemoAccount) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -19,8 +20,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
+      const isExplicitlyLoggedOut = localStorage.getItem('adr_explicitly_logged_out') === 'true';
       const token = localStorage.getItem('adr_auth_token');
-      if (token) {
+      
+      if (token && !isExplicitlyLoggedOut) {
         try {
           const me = await api.getMe();
           setUser(me);
@@ -28,8 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           api.setToken(null);
           setUser(null);
         }
-      } else {
-        // Automatically sign in with default physician for seamless evaluation
+      } else if (!isExplicitlyLoggedOut) {
+        // Automatically sign in with default physician for seamless initial preview
         try {
           const res = await api.login({ username: 'dr_sharma', password: 'password123' });
           setUser(res.user);
@@ -43,16 +46,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
+    localStorage.removeItem('adr_explicitly_logged_out');
     const res = await api.login({ username, password });
     setUser(res.user);
   };
 
+  const register = async (userData: RegisterPayload) => {
+    localStorage.removeItem('adr_explicitly_logged_out');
+    await api.register(userData);
+    // After successful registration, log in
+    const res = await api.login({ username: userData.username, password: userData.password });
+    setUser(res.user);
+  };
+
   const loginWithDemo = async (demo: DemoAccount) => {
+    localStorage.removeItem('adr_explicitly_logged_out');
     const res = await api.login({ username: demo.username, password: demo.password });
     setUser(res.user);
   };
 
   const logout = () => {
+    localStorage.setItem('adr_explicitly_logged_out', 'true');
     api.setToken(null);
     setUser(null);
   };
@@ -63,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         login,
+        register,
         loginWithDemo,
         logout,
         isAuthenticated: !!user

@@ -185,3 +185,28 @@ export interface DashboardStats {
   causality_distribution: Record<string, number>;
   recent_reports: ADRReport[];
 }
+
+export interface AIChatMessage {
+  id?: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp?: string;
+}
+
+export interface AIChatResponse {
+  reply: string;
+  suggested_actions?: string[];
+  context_used?: Record<string, any>;
+  source?: string;
+}
+
+export interface RegisterPayload {
+  username: string;
+  email: string;
+  full_name: string;
+  role: string;
+  department?: string;
+  institution?: string;
+  password: string;
+}
+

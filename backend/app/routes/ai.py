@@ -1,14 +1,20 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any, List
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.schemas import (
     AIExtractionRequest,
     AIExtractionResponse,
     NaranjoEvaluationRequest,
-    NaranjoEvaluationResponse
+    NaranjoEvaluationResponse,
+    AIChatRequest,
+    AIChatResponse
 )
 from app.nlp.extractor import process_clinical_narrative
 from app.nlp.validator import validate_adr_report_completeness
 from app.nlp.causality import calculate_naranjo_score, NARANJO_QUESTIONS
+from app.nlp.chat_engine import process_chat_message
 
 router = APIRouter(prefix="/ai", tags=["AI & NLP Module"])
 
@@ -88,3 +94,19 @@ def evaluate_naranjo_causality(payload: NaranjoEvaluationRequest):
 @router.get("/scenarios")
 def get_clinical_scenarios():
     return CLINICAL_SCENARIOS
+
+@router.post("/chat", response_model=AIChatResponse)
+def ai_pharmacovigilance_chat(payload: AIChatRequest, db: Session = Depends(get_db)):
+    """
+    Interactive Clinical Pharmacovigilance Chat Endpoint.
+    Connects to live ADR case registry and clinical knowledge base with offline-first fallback.
+    """
+    messages_dicts = [{"role": m.role, "content": m.content} for m in payload.messages]
+    result = process_chat_message(
+        messages=messages_dicts,
+        context=payload.context,
+        db=db,
+        api_key=payload.api_key
+    )
+    return result
+

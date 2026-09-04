@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ShieldAlert, 
-  FileCheck2, 
   Clock, 
   Activity, 
   Sparkles, 
-  ArrowUpRight, 
-  Plus, 
-  Search, 
-  Filter, 
+  ArrowUpRight,
   FileText,
+  FileCheck2,
   AlertTriangle,
   HeartPulse,
   Pill,
-  BarChart3,
-  Download
+  BarChart3
 } from 'lucide-react';
-import { DashboardStats, ADRReport } from '../types';
+import { DashboardStats } from '../types';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { SkeletonCard, SkeletonTable } from '../components/LoadingSkeleton';
 
 interface DashboardProps {
   onNavigate: (page: string, param?: any) => void;
@@ -57,6 +54,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-300">Draft</span>;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-36 bg-gradient-to-r from-teal-800 to-cyan-800 rounded-3xl animate-pulse"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <SkeletonTable rows={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

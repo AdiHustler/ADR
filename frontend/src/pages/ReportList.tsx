@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ADRReport } from '../types';
 import { api } from '../services/api';
+import { SkeletonTable } from '../components/LoadingSkeleton';
 
 interface ReportListProps {
   onNavigate: (page: string, param?: any) => void;
@@ -24,15 +25,24 @@ export const ReportList: React.FC<ReportListProps> = ({ onNavigate }) => {
   const [reports, setReports] = useState<ADRReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [seriousFilter, setSeriousFilter] = useState<boolean | undefined>(undefined);
   const [drugFilter, setDrugFilter] = useState('');
+
+  // 300ms Search Debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const fetchReports = async () => {
     try {
       setLoading(true);
       const data = await api.getReports({
-        search: searchTerm || undefined,
+        search: debouncedSearch || undefined,
         status: statusFilter || undefined,
         is_serious: seriousFilter,
         drug_name: drugFilter || undefined
@@ -47,7 +57,7 @@ export const ReportList: React.FC<ReportListProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     fetchReports();
-  }, [searchTerm, statusFilter, seriousFilter, drugFilter]);
+  }, [debouncedSearch, statusFilter, seriousFilter, drugFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -181,12 +191,19 @@ export const ReportList: React.FC<ReportListProps> = ({ onNavigate }) => {
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {loading ? (
-                <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400 text-xs font-semibold">
-                    <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                    Loading case registry...
-                  </td>
-                </tr>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="py-4 px-6"><div className="h-4 w-24 bg-slate-200 rounded"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 w-20 bg-slate-200 rounded"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 w-28 bg-slate-200 rounded"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 w-32 bg-slate-200 rounded"></div></td>
+                    <td className="py-4 px-6"><div className="h-5 w-16 bg-slate-200 rounded-full"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 w-16 bg-slate-200 rounded"></div></td>
+                    <td className="py-4 px-6"><div className="h-4 w-12 bg-slate-200 rounded"></div></td>
+                    <td className="py-4 px-6"><div className="h-5 w-20 bg-slate-200 rounded-full"></div></td>
+                    <td className="py-4 px-6 text-right"><div className="h-7 w-20 bg-slate-200 rounded-lg ml-auto"></div></td>
+                  </tr>
+                ))
               ) : reports.length > 0 ? (
                 reports.map((report) => {
                   const drug = report.suspected_medicines?.[0]?.drug_name || 'Unspecified';

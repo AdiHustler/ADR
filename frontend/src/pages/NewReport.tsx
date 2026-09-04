@@ -2,14 +2,10 @@ import React, { useState } from 'react';
 import { 
   Sparkles, 
   Send, 
-  User as UserIcon, 
-  Pill, 
-  Activity, 
-  ShieldAlert, 
-  Calculator,
-  CheckCircle2,
-  AlertTriangle,
-  Info
+  CheckCircle2, 
+  Info,
+  Mic,
+  MicOff
 } from 'lucide-react';
 import { 
   ADRReport, 
@@ -31,6 +27,60 @@ export const NewReport: React.FC<NewReportProps> = ({ onNavigate }) => {
   const [narrative, setNarrative] = useState('');
   const [extracting, setExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState<AIExtractionResponse | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+
+  const toggleVoiceInput = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isListening) {
+      (window as any)._activeRecognition?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setVoiceError(null);
+      };
+
+      recognition.onresult = (event: any) => {
+        let text = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          text += event.results[i][0].transcript + ' ';
+        }
+        if (text.trim()) {
+          setNarrative(text.trim());
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        setIsListening(false);
+        setVoiceError('Voice error: ' + event.error);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      (window as any)._activeRecognition = recognition;
+      recognition.start();
+    } catch (e: any) {
+      setIsListening(false);
+      setVoiceError(e.message);
+    }
+  };
+
 
   // Form State initialized with defaults
   const [formData, setFormData] = useState<Partial<ADRReport>>({
@@ -184,15 +234,45 @@ export const NewReport: React.FC<NewReportProps> = ({ onNavigate }) => {
         {/* Left Column: Narrative Input */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
-                <Sparkles className="w-4 h-4" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-slate-900 text-sm">Clinical Narrative Note</h2>
+                  <p className="text-[10px] text-slate-400">Paste or dictate clinical notes</p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-extrabold text-slate-900 text-sm">Clinical Narrative Note</h2>
-                <p className="text-[10px] text-slate-400">Paste unstructured discharge notes or descriptions</p>
-              </div>
+
+              {/* Voice Dictation Button */}
+              <button
+                type="button"
+                onClick={toggleVoiceInput}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  isListening
+                    ? 'bg-rose-600 text-white animate-pulse shadow-md ring-2 ring-rose-400'
+                    : 'bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 border border-slate-200'
+                }`}
+                title={isListening ? 'Stop dictation' : 'Start voice dictation'}
+              >
+                {isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5 text-teal-600" />}
+                <span>{isListening ? 'Stop' : 'Voice Input'}</span>
+              </button>
             </div>
+
+            {isListening && (
+              <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-medium flex items-center space-x-2 animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-rose-600"></span>
+                <span>Listening... Speak your case narrative clearly.</span>
+              </div>
+            )}
+
+            {voiceError && (
+              <div className="p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">
+                {voiceError}
+              </div>
+            )}
 
             <div className="space-y-4">
               <textarea

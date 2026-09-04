@@ -5,13 +5,19 @@ import {
   NaranjoQuestion,
   User,
   DemoAccount,
-  ClinicalScenario
+  ClinicalScenario,
+  AIChatMessage,
+  AIChatResponse,
+  RegisterPayload
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 class ApiService {
   private token: string | null = null;
+  private demoAccountsCache: DemoAccount[] | null = null;
+  private scenariosCache: ClinicalScenario[] | null = null;
+  private naranjoQuestionsCache: NaranjoQuestion[] | null = null;
 
   constructor() {
     this.token = localStorage.getItem('adr_auth_token');
@@ -36,25 +42,46 @@ class ApiService {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 18000); // 18s timeout
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-      throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+      }
+
+      // Handle 204 No Content
+      if (response.status === 204) {
+        return {} as T;
+      }
+
+      return response.json();
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw new Error('Network request timed out. Please check connection and try again.');
+      }
+      throw err;
     }
-
-    // Handle 204 No Content
-    if (response.status === 204) {
-      return {} as T;
-    }
-
-    return response.json();
   }
 
   // --- Auth Endpoints ---
+  async register(userData: RegisterPayload): Promise<User> {
+    return this.request<User>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }
+
   async login(credentials: { username: string; password: string }): Promise<{ access_token: string; user: User }> {
     const res = await this.request<{ access_token: string; user: User }>('/auth/login', {
       method: 'POST',
@@ -69,10 +96,24 @@ class ApiService {
   }
 
   async getDemoAccounts(): Promise<DemoAccount[]> {
-    return this.request<DemoAccount[]>('/auth/demo-accounts');
+    if (this.demoAccountsCache) return this.demoAccountsCache;
+    const data = await this.request<DemoAccount[]>('/auth/demo-accounts');
+    this.demoAccountsCache = data;
+    return data;
   }
 
   // --- AI & Extraction Endpoints ---
+  async chatWithAI(messages: AIChatMessage[], context?: Record<string, any>, apiKey?: string): Promise<AIChatResponse> {
+    return this.request<AIChatResponse>('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        messages,
+        context,
+        api_key: apiKey
+      })
+    });
+  }
+
   async extractFromNarrative(narrative: string, apiKey?: string): Promise<AIExtractionResponse> {
     return this.request<AIExtractionResponse>('/ai/extract', {
       method: 'POST',
@@ -92,11 +133,17 @@ class ApiService {
   }
 
   async getScenarios(): Promise<ClinicalScenario[]> {
-    return this.request<ClinicalScenario[]>('/ai/scenarios');
+    if (this.scenariosCache) return this.scenariosCache;
+    const data = await this.request<ClinicalScenario[]>('/ai/scenarios');
+    this.scenariosCache = data;
+    return data;
   }
 
   async getNaranjoQuestions(): Promise<NaranjoQuestion[]> {
-    return this.request<NaranjoQuestion[]>('/ai/naranjo-questions');
+    if (this.naranjoQuestionsCache) return this.naranjoQuestionsCache;
+    const data = await this.request<NaranjoQuestion[]>('/ai/naranjo-questions');
+    this.naranjoQuestionsCache = data;
+    return data;
   }
 
   async evaluateNaranjo(answers: Record<string, number>): Promise<{

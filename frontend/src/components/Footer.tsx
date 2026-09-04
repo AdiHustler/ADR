@@ -14,11 +14,11 @@ export const Footer: React.FC = () => {
         <div className="flex items-center space-x-1.5 text-slate-600">
           <span>Built by</span>
           <span className="font-bold text-teal-800 bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-md">
-            Priyansh Sharma
+            Pushkar Madan
           </span>
           <span className="text-slate-400 font-medium">&</span>
           <span className="font-bold text-teal-800 bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-md">
-            Pushkar Madan
+            Priyansh Sharma
           </span>
         </div>
       </div>

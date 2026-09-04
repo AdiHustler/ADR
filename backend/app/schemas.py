@@ -207,3 +207,21 @@ class DashboardStats(BaseModel):
     status_distribution: Dict[str, int]
     causality_distribution: Dict[str, int]
     recent_reports: List[ADRReportResponse]
+
+
+# --- AI Chat Schemas ---
+class AIChatMessage(BaseModel):
+    role: str # "user", "assistant", "system"
+    content: str
+
+class AIChatRequest(BaseModel):
+    messages: List[AIChatMessage]
+    context: Optional[Dict[str, Any]] = None # current report, active screen, filters
+    api_key: Optional[str] = None
+
+class AIChatResponse(BaseModel):
+    reply: str
+    suggested_actions: Optional[List[str]] = []
+    context_used: Optional[Dict[str, Any]] = None
+    source: str = "clinical_engine" # "gemini", "openrouter", "clinical_engine"
+
