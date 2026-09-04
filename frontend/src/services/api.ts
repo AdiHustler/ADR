@@ -193,7 +193,12 @@ class ApiService {
     });
   }
 
-  async verifyReport(id: number, data: { approved: boolean; verification_notes?: string }): Promise<ADRReport> {
+  async verifyReport(id: number, data: { 
+    approved?: boolean; 
+    action?: 'APPROVE' | 'REQUEST_CHANGES' | 'REJECT'; 
+    verification_notes?: string;
+    admin_feedback?: string;
+  }): Promise<ADRReport> {
     return this.request<ADRReport>(`/reports/${id}/verify`, {
       method: 'POST',
       body: JSON.stringify(data)

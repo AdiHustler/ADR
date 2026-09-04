@@ -10,6 +10,7 @@ class UserBase(BaseModel):
     role: str = "Physician"
     department: Optional[str] = "Internal Medicine"
     institution: Optional[str] = "General University Hospital"
+    is_admin: Optional[bool] = False
 
 class UserCreate(UserBase):
     password: str
@@ -162,13 +163,16 @@ class ADRReportCreate(BaseModel):
     ich_criteria_met: Optional[bool] = False
     status: Optional[str] = "DRAFT"
     ai_clinical_summary: Optional[str] = None
+    admin_feedback: Optional[str] = None
 
 class ADRReportUpdate(ADRReportCreate):
     pass
 
 class ADRReportVerify(BaseModel):
     verification_notes: Optional[str] = None
+    admin_feedback: Optional[str] = None
     approved: bool = True
+    action: Optional[str] = "APPROVE"  # "APPROVE", "REQUEST_CHANGES", "REJECT"
 
 class AuditLogResponse(BaseModel):
     id: int

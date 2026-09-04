@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ShieldAlert, 
+  ShieldCheck,
   Clock, 
   Activity, 
   Sparkles, 
@@ -10,7 +11,8 @@ import {
   AlertTriangle,
   HeartPulse,
   Pill,
-  BarChart3
+  BarChart3,
+  Award
 } from 'lucide-react';
 import { DashboardStats } from '../types';
 import { api } from '../services/api';
@@ -48,8 +50,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Verified & Approved</span>;
       case 'SUBMITTED':
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-blue-100 text-blue-800 border border-blue-300">Submitted</span>;
+      case 'CHANGES_REQUESTED':
+        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">Revisions Requested</span>;
+      case 'REJECTED':
+        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-rose-100 text-rose-800 border border-rose-300">Case Rejected</span>;
       case 'PENDING_REVIEW':
-        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">In Review</span>;
+        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-purple-100 text-purple-800 border border-purple-300">Pending CMO Review</span>;
       default:
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-300">Draft</span>;
     }
@@ -73,34 +79,76 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   return (
     <div className="space-y-6">
       
-      {/* Top Welcome Banner */}
-      <div className="bg-gradient-to-r from-teal-800 via-teal-700 to-cyan-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center space-x-2 text-teal-200 text-xs font-bold uppercase tracking-wider mb-2">
-              <Activity className="w-4 h-4" />
-              <span>Pharmacovigilance Intelligence Hub</span>
+      {/* Executive Chief Medical Officer Hero Banner OR Standard Clinical Banner */}
+      {(user?.is_admin || user?.username === 'dr_sharma' || user?.role?.includes('Admin') || user?.role?.includes('Chief Medical Officer')) ? (
+        <div className="bg-gradient-to-r from-slate-950 via-purple-950 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-purple-700/50 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2.5">
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center space-x-1.5 shadow-xs">
+                  <Award className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Chief Medical Officer Operations Hub</span>
+                </span>
+                <span className="text-xs text-purple-400 font-bold">•</span>
+                <span className="text-xs text-purple-200 font-semibold">Institutional Safety Authority</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Welcome back, {user?.full_name || 'Dr. Rajesh Sharma, MD'}
+              </h1>
+              <p className="text-sm text-purple-200/90 max-w-2xl leading-relaxed">
+                Executive pharmacovigilance oversight. Triage high-risk patient safety signals, sign-off on serious adverse reactions, and issue clinical revision directives.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Welcome back, {user?.full_name || 'Clinician'}
-            </h1>
-            <p className="text-sm text-teal-100/90 mt-1 max-w-2xl">
-              AI-assisted extraction, completeness audits, and clinical verification for adverse drug reactions.
-            </p>
-          </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => onNavigate('new-report')}
-              className="flex items-center space-x-2 bg-white hover:bg-teal-50 text-teal-900 px-5 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-teal-950/20 hover:scale-[1.02] transition-all"
-            >
-              <Sparkles className="w-4 h-4 text-teal-600" />
-              <span>New AI-Assisted ADR Report</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => onNavigate('admin-console')}
+                className="flex items-center space-x-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 px-5 py-3 rounded-2xl font-black text-xs shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition-all"
+              >
+                <ShieldCheck className="w-4 h-4 text-slate-950" />
+                <span>Open CMO Command Center</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('new-report')}
+                className="flex items-center space-x-2 bg-purple-900/70 hover:bg-purple-800 text-purple-100 border border-purple-600/50 px-4 py-3 rounded-2xl font-bold text-xs shadow-md transition-all"
+              >
+                <Sparkles className="w-4 h-4 text-purple-300" />
+                <span>New ADR Case</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-r from-teal-800 via-teal-700 to-cyan-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="flex items-center space-x-2 text-teal-200 text-xs font-bold uppercase tracking-wider mb-2">
+                <Activity className="w-4 h-4" />
+                <span>Pharmacovigilance Intelligence Hub</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                Welcome back, {user?.full_name || 'Clinician'}
+              </h1>
+              <p className="text-sm text-teal-100/90 mt-1 max-w-2xl">
+                AI-assisted extraction, completeness audits, and clinical verification for adverse drug reactions.
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => onNavigate('new-report')}
+                className="flex items-center space-x-2 bg-white hover:bg-teal-50 text-teal-900 px-5 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-teal-950/20 hover:scale-[1.02] transition-all"
+              >
+                <Sparkles className="w-4 h-4 text-teal-600" />
+                <span>New AI-Assisted ADR Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

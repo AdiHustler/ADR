@@ -7,6 +7,7 @@ export interface User {
   department?: string;
   institution?: string;
   is_active: boolean;
+  is_admin?: boolean;
   created_at: string;
 }
 
@@ -17,6 +18,9 @@ export interface DemoAccount {
   password: string;
   department: string;
   institution: string;
+  is_admin?: boolean;
+  badge?: string;
+  duties?: string;
 }
 
 export interface SuspectedMedicine {
@@ -112,7 +116,8 @@ export interface ADRReport {
   completeness_score?: number;
   ich_criteria_met?: boolean;
   ai_clinical_summary?: string;
-  status: 'DRAFT' | 'AI_EXTRACTED' | 'PENDING_REVIEW' | 'VERIFIED_APPROVED' | 'SUBMITTED';
+  admin_feedback?: string;
+  status: 'DRAFT' | 'AI_EXTRACTED' | 'PENDING_REVIEW' | 'CHANGES_REQUESTED' | 'VERIFIED_APPROVED' | 'REJECTED' | 'SUBMITTED';
   verified_by_user_id?: number;
   verified_at?: string;
   verification_notes?: string;

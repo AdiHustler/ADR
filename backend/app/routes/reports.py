@@ -192,32 +192,69 @@ def verify_report(
     current_user: Optional[User] = Depends(get_current_user)
 ):
     """
-    Healthcare Professional Review & Approval workflow.
-    Validates human sign-off on AI-suggested fields and transitions status to VERIFIED_APPROVED.
+    Healthcare Professional Admin Review & Approval workflow.
+    Restricted to Chief Medical Officer / Admin Physician (Dr. Rajesh Sharma).
+    Validates human sign-off on AI-suggested fields, sets verification notes, and issues clinical feedback.
     """
+    if not current_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required. Please sign in as the Chief Medical Officer / Admin Physician."
+        )
+
+    # Enforce Admin Role: Only Dr. Rajesh Sharma or user with is_admin=True / Admin role can verify & approve
+    is_authorized_admin = (
+        getattr(current_user, "is_admin", False)
+        or current_user.username == "dr_sharma"
+        or "Admin" in (current_user.role or "")
+        or "Chief Medical Officer" in (current_user.role or "")
+    )
+    if not is_authorized_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Access Denied: Only authorized Admin Physicians / Chief Medical Officers (Dr. Rajesh Sharma) can verify, approve, or issue clinical feedback on ADR cases."
+        )
+
     report = db.query(ADRReport).filter(ADRReport.id == report_id).first()
     if not report:
         raise HTTPException(status_code=404, detail="ADR Report not found")
 
-    user_id = current_user.id if current_user else None
-    verifier_name = current_user.full_name if current_user else "Reviewing Clinician"
+    verifier_name = current_user.full_name or "Dr. Rajesh Sharma, MD"
+    feedback = verify_in.admin_feedback or verify_in.verification_notes or ""
 
-    if verify_in.approved:
+    action_type = (verify_in.action or ("APPROVE" if verify_in.approved else "REQUEST_CHANGES")).upper()
+
+    if action_type == "APPROVE" or (verify_in.approved and action_type != "REJECT"):
         report.status = "VERIFIED_APPROVED"
-        report.verified_by_user_id = user_id
+        report.verified_by_user_id = current_user.id
         report.verified_at = datetime.datetime.utcnow()
-        report.verification_notes = verify_in.verification_notes or "Reviewed and clinically approved by healthcare professional."
+        final_feedback = feedback or "Reviewed, verified, and clinically approved by Chief Medical Officer."
+        report.verification_notes = final_feedback
+        report.admin_feedback = final_feedback
         action_name = "CLINICAL_APPROVAL"
-        action_detail = f"Report approved and verified by {verifier_name}. Ready for pharmacovigilance submission."
-    else:
-        report.status = "PENDING_REVIEW"
-        report.verification_notes = verify_in.verification_notes or "Sent back for further clinical information."
+        action_detail = f"Report clinically verified and approved by {verifier_name}. Feedback: {final_feedback}"
+    elif action_type == "REJECT":
+        report.status = "REJECTED"
+        report.verified_by_user_id = current_user.id
+        report.verified_at = datetime.datetime.utcnow()
+        final_feedback = feedback or "ADR case rejected after clinical assessment."
+        report.verification_notes = final_feedback
+        report.admin_feedback = final_feedback
+        action_name = "CLINICAL_REJECTION"
+        action_detail = f"Report rejected by Chief Medical Officer {verifier_name}. Rationale: {final_feedback}"
+    else:  # REQUEST_CHANGES
+        report.status = "CHANGES_REQUESTED"
+        report.verified_by_user_id = current_user.id
+        report.verified_at = datetime.datetime.utcnow()
+        final_feedback = feedback or "Clinical revisions requested. Please review notes and re-submit."
+        report.verification_notes = final_feedback
+        report.admin_feedback = final_feedback
         action_name = "CHANGES_REQUESTED"
-        action_detail = f"Reviewer requested modifications: {verify_in.verification_notes}"
+        action_detail = f"Chief Medical Officer {verifier_name} requested clinical changes: {final_feedback}"
 
     audit = AuditLog(
         report_id=report.id,
-        user_id=user_id,
+        user_id=current_user.id,
         action=action_name,
         details=action_detail
     )

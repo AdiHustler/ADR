@@ -72,8 +72,12 @@ export const ReportList: React.FC<ReportListProps> = ({ onNavigate }) => {
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Verified & Approved</span>;
       case 'SUBMITTED':
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-blue-100 text-blue-800 border border-blue-300">Submitted</span>;
+      case 'CHANGES_REQUESTED':
+        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">Revisions Requested</span>;
+      case 'REJECTED':
+        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-rose-100 text-rose-800 border border-rose-300">Case Rejected</span>;
       case 'PENDING_REVIEW':
-        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">In Review</span>;
+        return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-purple-100 text-purple-800 border border-purple-300">Pending CMO Review</span>;
       default:
         return <span className="px-2.5 py-1 text-xs rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-300">Draft</span>;
     }
@@ -124,11 +128,13 @@ export const ReportList: React.FC<ReportListProps> = ({ onNavigate }) => {
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:border-teal-500 outline-none bg-white font-medium text-slate-700"
             >
               <option value="">All Statuses</option>
+              <option value="PENDING_REVIEW">Pending CMO Review</option>
+              <option value="CHANGES_REQUESTED">Revisions Requested</option>
+              <option value="VERIFIED_APPROVED">Verified & Approved</option>
+              <option value="REJECTED">Case Rejected</option>
+              <option value="SUBMITTED">Submitted</option>
               <option value="DRAFT">Draft</option>
               <option value="AI_EXTRACTED">AI Extracted</option>
-              <option value="PENDING_REVIEW">In Review</option>
-              <option value="VERIFIED_APPROVED">Verified & Approved</option>
-              <option value="SUBMITTED">Submitted</option>
             </select>
           </div>
 

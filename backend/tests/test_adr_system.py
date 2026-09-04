@@ -147,3 +147,47 @@ def test_api_auth_register(client):
         data = res.json()
         assert data["username"] == unique_username
 
+def test_admin_doctor_verification_workflow(client):
+    # 1. Login as Admin Doctor (dr_sharma)
+    login_res = client.post("/api/auth/login", json={
+        "username": "dr_sharma",
+        "password": "password123"
+    })
+    assert login_res.status_code == 200
+    token = login_res.json()["access_token"]
+    user = login_res.json()["user"]
+    assert user["is_admin"] is True
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Admin verifies Report #1
+    verify_res = client.post("/api/reports/1/verify", headers=headers, json={
+        "approved": True,
+        "action": "APPROVE",
+        "verification_notes": "Clinically verified by CMO Dr. Sharma. Hypersensitivity documented.",
+        "admin_feedback": "Confirmed causality score and emergency epinephrine intervention."
+    })
+    assert verify_res.status_code == 200
+    updated_report = verify_res.json()
+    assert updated_report["status"] == "VERIFIED_APPROVED"
+    assert "Confirmed causality" in updated_report["admin_feedback"]
+
+def test_non_admin_verification_forbidden(client):
+    # 1. Login as Clinical Pharmacist (pharm_patel) - Non-admin
+    login_res = client.post("/api/auth/login", json={
+        "username": "pharm_patel",
+        "password": "password123"
+    })
+    assert login_res.status_code == 200
+    token = login_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Attempt to verify should be Forbidden (403)
+    verify_res = client.post("/api/reports/1/verify", headers=headers, json={
+        "approved": True,
+        "action": "APPROVE",
+        "verification_notes": "Unauthorized attempt to verify"
+    })
+    assert verify_res.status_code == 403
+    assert "Only authorized Admin Physicians" in verify_res.json()["detail"]
+

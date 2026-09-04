@@ -363,21 +363,44 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
             Or Click to Sign In Instantly As Demo Persona:
           </p>
 
-          <div className="space-y-1.5">
-            {demoAccounts.map((demo) => (
+          <div className="space-y-2">
+            {demoAccounts.map((demo) => {
+              const isAdmin = demo.is_admin || demo.username === 'dr_sharma';
+              return (
               <button
                 key={demo.username}
                 type="button"
                 onClick={() => handleDemoClick(demo)}
-                className="w-full p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 text-left transition-all group flex items-center justify-between"
+                className={`w-full p-2.5 rounded-xl text-left transition-all group flex items-center justify-between border ${
+                  isAdmin
+                    ? 'bg-purple-50/70 hover:bg-purple-100/80 border-purple-300 ring-1 ring-purple-400/20 shadow-xs'
+                    : 'bg-slate-50 hover:bg-teal-50 border-slate-200 hover:border-teal-300'
+                }`}
               >
                 <div>
-                  <div className="text-xs font-bold text-slate-800 group-hover:text-teal-900">{demo.name}</div>
-                  <div className="text-[10px] text-slate-500">{demo.role} • {demo.department}</div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-bold text-slate-900 group-hover:text-teal-950">{demo.name}</span>
+                    {isAdmin && (
+                      <span className="text-[9px] px-1.5 py-0.2 bg-purple-600 text-white rounded font-extrabold uppercase tracking-wide">
+                        Admin Verifier
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">
+                    {demo.role} • {demo.department}
+                  </div>
+                  {isAdmin && (
+                    <p className="text-[10px] text-purple-700 font-semibold mt-0.5">
+                      ✓ Verifies & approves ADR cases • Issues clinical feedback
+                    </p>
+                  )}
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className={`w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform ${
+                  isAdmin ? 'text-purple-600' : 'text-slate-400 group-hover:text-teal-600'
+                }`} />
               </button>
-            ))}
+            );
+            })}
           </div>
         </div>
 

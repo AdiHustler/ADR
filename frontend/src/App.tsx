@@ -11,12 +11,14 @@ import { Analytics } from './pages/Analytics';
 import { KnowledgeBase } from './pages/KnowledgeBase';
 import { ComplianceHub } from './pages/ComplianceHub';
 import { AboutTeam } from './pages/AboutTeam';
+import { AdminConsole } from './pages/AdminConsole';
 import { Login } from './pages/Login';
 import { AIChatDrawer } from './components/AIChatDrawer';
 import { Bot } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  const isAdmin = !!(user?.is_admin || user?.username === 'dr_sharma' || user?.role?.includes('Admin') || user?.role?.includes('Chief Medical Officer'));
   const [currentPage, setCurrentPage] = useState<string>('dashboard');
   const [activeReportId, setActiveReportId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
@@ -54,6 +56,7 @@ const MainLayout: React.FC = () => {
 
         <main className="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto">
           {currentPage === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
+          {currentPage === 'admin-console' && (isAdmin ? <AdminConsole onNavigate={handleNavigate} /> : <Dashboard onNavigate={handleNavigate} />)}
           {currentPage === 'new-report' && <NewReport onNavigate={handleNavigate} />}
           {currentPage === 'reports-list' && <ReportList onNavigate={handleNavigate} />}
           {currentPage === 'analytics' && <Analytics />}

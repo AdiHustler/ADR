@@ -15,6 +15,7 @@ class User(Base):
     institution = Column(String(150), default="General University Hospital")
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     reports_created = relationship("ADRReport", back_populates="created_by", foreign_keys="ADRReport.created_by_user_id")
@@ -91,10 +92,11 @@ class ADRReport(Base):
     ai_clinical_summary = Column(Text, nullable=True)
     
     # 10. Status & Human Review Verification
-    status = Column(String(50), default="DRAFT") # DRAFT, AI_EXTRACTED, PENDING_REVIEW, VERIFIED_APPROVED, SUBMITTED
+    status = Column(String(50), default="DRAFT") # DRAFT, AI_EXTRACTED, PENDING_REVIEW, CHANGES_REQUESTED, VERIFIED_APPROVED, REJECTED, SUBMITTED
     verified_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     verified_at = Column(DateTime, nullable=True)
     verification_notes = Column(Text, nullable=True)
+    admin_feedback = Column(Text, nullable=True)
     
     created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

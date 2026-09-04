@@ -55,6 +55,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         role=user_in.role,
         department=user_in.department,
         institution=user_in.institution,
+        is_admin=user_in.is_admin or False,
         hashed_password=hashed_pw
     )
     db.add(new_user)
@@ -86,12 +87,15 @@ def get_demo_accounts():
     """Provides quick login presets for clinical evaluation"""
     return [
         {
-            "role": "Attending Physician",
+            "role": "Chief Medical Officer (Admin)",
             "name": "Dr. Rajesh Sharma, MD",
             "username": "dr_sharma",
             "password": "password123",
             "department": "Internal Medicine / Cardiology",
-            "institution": "Max Super Speciality Hospital"
+            "institution": "Max Super Speciality Hospital",
+            "is_admin": True,
+            "badge": "Admin / Lead Verifier",
+            "duties": "Reviews & approves ADR cases, issues clinical feedback"
         },
         {
             "role": "Clinical Pharmacist",

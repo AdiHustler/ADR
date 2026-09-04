@@ -5,12 +5,34 @@ from app.models import User, ADRReport, AuditLog
 from app.routes.auth import get_password_hash
 from app.nlp.validator import validate_adr_report_completeness
 
+from sqlalchemy import text
+
 def seed_database():
     Base.metadata.create_all(bind=engine)
+    
+    # Idempotent SQLite migrations for is_admin and admin_feedback
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE adr_reports ADD COLUMN admin_feedback TEXT"))
+            conn.commit()
+        except Exception:
+            pass
+
     db = SessionLocal()
 
     # Check if already seeded
     if db.query(User).count() > 0:
+        # Ensure dr_sharma has admin privileges and title
+        dr = db.query(User).filter(User.username == "dr_sharma").first()
+        if dr:
+            dr.is_admin = True
+            dr.role = "Chief Medical Officer (Admin)"
+            db.commit()
         db.close()
         return
 
@@ -22,10 +44,11 @@ def seed_database():
             username="dr_sharma",
             email="r.sharma@maxmedical.in",
             full_name="Dr. Rajesh Sharma, MD",
-            role="Physician",
+            role="Chief Medical Officer (Admin)",
             department="Internal Medicine / Cardiology",
             institution="Max Super Speciality Hospital",
-            hashed_password=get_password_hash("password123")
+            hashed_password=get_password_hash("password123"),
+            is_admin=True
         ),
         User(
             username="pharm_patel",
